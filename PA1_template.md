@@ -276,6 +276,7 @@ head(imputed.data2)
 
 Calculate the average steps in the 5-minute interval and use ggplot for making the time series of the 5-minute interval for weekday and weekend, and compare the average steps:
 
+
 ```r
 interval_full <- imputed.data2 %>%
   group_by(interval, weektype) %>%
