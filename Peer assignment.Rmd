@@ -5,18 +5,48 @@ date: "November 13, 2015"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# Preprocessing files and the dataset
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Read in the data from the activity file
 
 ```{r}
-summary(cars)
+data <- read.csv("activity.csv", header = TRUE, sep = ',', colClasses = c("numeric", "character","integer"))
 ```
 
-You can also embed plots, for example:
 
-```{r, echo=FALSE}
-plot(cars)
+Load in the libraries being used.
+
+```{r}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Change date into dateformat using as.Date
+```{r}
+data$date <- as.Date(data$date)
+```
+
+
+```{r}
+head(data)
+```
+
+
+# What is mean total number of steps taken per day?
+
+Aggregate the number of steps in a day by date, using group_by
+```{r}
+steps <- data %>%
+  group_by(date) %>%
+  summarize(steps = sum(steps,na.rm=TRUE)) 
+steps
+
+```
+
+Use ggplot for making the histogram:
+
+```{r}
+ggplot(steps, aes(x = steps)) + geom_histogram(fill = "blue", binwidth = 1000) + labs(title = "Steps per day", x = "Steps per day", y = "Frequency")
+```
+
