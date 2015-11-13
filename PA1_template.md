@@ -247,4 +247,44 @@ median_steps_imputed
 ```
 The impact of imputing missing data with the average number of steps in the same 5-min interval is that both the mean and the median are equal to the same value: 10766.
 
-Are there differences in activity patterns between weekdays and weekends?
+## Are there differences in activity patterns between weekdays and weekends?
+
+
+Use dplyr and mutate to create a new column, weektype, and apply whether the day is weekend or weekday:
+
+
+```r
+imputed.data2 <- mutate(imputed.data, weektype = weekdays(date)) %>% mutate(weektype=ifelse(weektype=="Sunday"|weektype=="Sunday",'weekend','weekday'))
+imputed.data2$weektype <- as.factor(imputed.data2$weektype)
+head(imputed.data2)
+```
+
+```
+## Source: local data frame [6 x 4]
+## Groups: interval [6]
+## 
+##       steps       date interval weektype
+##       (dbl)     (date)    (int)   (fctr)
+## 1 1.7169811 2012-10-01        0  weekday
+## 2 0.3396226 2012-10-01        5  weekday
+## 3 0.1320755 2012-10-01       10  weekday
+## 4 0.1509434 2012-10-01       15  weekday
+## 5 0.0754717 2012-10-01       20  weekday
+## 6 2.0943396 2012-10-01       25  weekday
+```
+
+
+Calculate the average steps in the 5-minute interval and use ggplot for making the time series of the 5-minute interval for weekday and weekend, and compare the average steps:
+
+```r
+interval_full <- imputed.data2 %>%
+  group_by(interval, weektype) %>%
+  summarise(steps = mean(steps))
+s <- ggplot(interval_full, aes(x=interval, y=steps, color = weektype)) +
+  geom_line() +
+  facet_wrap(~weektype, ncol = 1, nrow=2)
+print(s)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-17-1.png) 
+
