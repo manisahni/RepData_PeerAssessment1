@@ -1,0 +1,83 @@
+---
+title: "Reproducible Research Peer Assesment 2"
+author: "Nishant Sahni"
+date: "November 13, 2015"
+output: html_document
+---
+
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
+
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration’s (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+
+We will be exploring the NOAA Storm Database to answer the following questions related to weather events:
+
+    Across the United States, which types of events are most harmful with respect to population health?
+    Across the United States, which types of events have the greatest economic consequences?
+
+During the analysis it was found that the most harmful event is the tornado causing with 5633 deaths and 91346 injuries. In terms of economical loses, floods has been the responsible of most of the properties loses, while drought has been the greater contributor to crops loses.
+
+
+## Data Processing
+
+# Loading in the data
+
+We will get the Strom Data from the website:
+
+```{r}
+if (!file.exists("StormData.csv.bz2")) {
+    fileURL <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'
+    download.file(fileURL, destfile='StormData.csv.bz2', method = 'curl')
+}
+stormData <- read.csv(bzfile('StormData.csv.bz2'),header=TRUE, stringsAsFactors = FALSE)
+downloadedData <- date()
+```
+
+lets load in dplyr which we will use
+```{r, echo=FALSE}
+library(dplyr)
+```
+
+
+Lets take a look at the dataset
+```{r}
+
+glimpse(stormData)
+```
+
+lets select the columns relevant to our analysis
+```{r}
+data <- stormData %>% select(EVTYPE,FATALITIES,INJURIES,PROPDMG,PROPDMGEXP,CROPDMG,CROPDMGEXP) %>% mutate(.,PROPDMGEXP2=ifelse(PROPDMGEXP=="K",3,ifelse(PROPDMGEXP=="M",6,ifelse(PROPDMGEXP=="B",9,ifelse(PROPDMGEXP=="H",2,0))))) %>% mutate(TOTALPROPDMG= PROPDMG * 10^PROPDMGEXP2)
+```
+
+#1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+To answer this question we will present the results divided by fatalities and injuries. First, we will perform an aggregate function to obtain the sum of all fatalities caused by an specific event. From that, we will order the table in a decreasing order and take the top 10.
+
+```{r}
+sumFatalities <- data %>% group_by(EVTYPE) %>% summarise(sum(FATALITIES)) 
+names(sumFatalities)[2] <- "total_fatal" 
+top10_f <- sumFatalities %>% arrange(-total_fatal) %>% top_n(10)
+top10_f
+
+```
+
+Same for injuries
+
+```{r}
+sumInjuries <- data %>% group_by(EVTYPE) %>% summarise(sum(INJURIES)) 
+names(sumInjuries)[2] <- "total_injury" 
+top10_i <- sumInjuries %>% arrange(-total_injury) %>% top_n(10)
+top10_i 
+
+
+```
+
+
+```{r}
+par(mfrow = c(1, 2), mar = c(12, 5, 3, 2), mgp = c(3, 1, 0), cex = 0.8, las = 3)
+barplot(top10_f$total_fatal, names.arg = top10_f$EVTYPE, col = 'red',
+        main = 'Top 10 Weather Events for Fatalities', ylab = 'Number of Fatalities')
+barplot(top10_i$total_injury, names.arg = top10_i$EVTYPE, col = 'blue',
+        main = 'Top 10 Weather Events for Injuries', ylab = 'Number of Injuries')
+```
+
